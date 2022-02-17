@@ -1,51 +1,49 @@
 package main
 
 import (
-	"encoding/json"
-	"fmt"
-	"io/ioutil"
+	"image/color"
 	"log"
-	"net/http"
 	"os"
-)
-import (
-	marketData "go_TradingApp/main/binanceapi/marketDataEndpoints"
+
+	"gioui.org/app"
+	"gioui.org/font/gofont"
+	"gioui.org/io/system"
+	"gioui.org/layout"
+	"gioui.org/op"
+	"gioui.org/text"
+	"gioui.org/widget/material"
 )
 
 func main() {
+	go func() {
+		w := app.NewWindow()
+		err := run(w)
+		if err != nil {
+			log.Fatal(err)
+		}
+		os.Exit(0)
+	}()
+	app.Main()
+}
 
-	response, err := http.Get("https://binance.com/api/v3/time")
-	response2, err2 := http.Get("https://binance.com/api/v3/exchangeInfo")
+func run(w *app.Window) error {
+	th := material.NewTheme(gofont.Collection())
+	var ops op.Ops
+	for {
+		e := <-w.Events()
+		switch e := e.(type) {
+		case system.DestroyEvent:
+			return e.Err
+		case system.FrameEvent:
+			gtx := layout.NewContext(&ops, e)
 
-	if err != nil {
-		fmt.Print(err.Error())
-		os.Exit(1)
-	}
-	if err2 != nil {
-		fmt.Print(err2.Error())
-		os.Exit(2)
-	}
+			title := material.H1(th, "Hello, Gio")
+			maroon := color.NRGBA{R: 127, G: 0, B: 0, A: 255}
+			title.Color = maroon
+			title.Alignment = text.Middle
+			title.Layout(gtx)
 
-	responseData, err := ioutil.ReadAll(response.Body)
-	if err != nil {
-		log.Fatal(err)
-	}
-	responseData2, err2 := ioutil.ReadAll(response2.Body)
-	if err2 != nil {
-		log.Fatal(err2)
-	}
-
-	//fmt.Println(string(responseData2))
-
-	var ResponseObject marketData.ServerTime
-	var ResponseObject2 marketData.ExchangeInfo
-
-	json.Unmarshal(responseData, &ResponseObject)
-	json.Unmarshal(responseData2, &ResponseObject2)
-
-	fmt.Println(ResponseObject.GetServerTimeFormatted())
-	_symbols := ResponseObject2.GetSymbols()
-	for i := 0; i < len(_symbols); i++ {
-		fmt.Println(_symbols[i].Symbol)
+			e.Frame(gtx.Ops)
+		}
 	}
 }
