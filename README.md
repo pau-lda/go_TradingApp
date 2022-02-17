@@ -1,5 +1,6 @@
 # TradingApp
-### A Golang based application for the Binance-Trading-API
+### I N - D E V E L O P M E N T
+### A GOlang based application for the Binance-Trading-API
 
 ___
 
