@@ -1,6 +1,6 @@
 module go_TradingApp
 
-go 1.17
+go 1.18
 
 require gioui.org v0.0.0-20220216185002-2df3db361f28
 
