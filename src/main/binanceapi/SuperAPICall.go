@@ -3,26 +3,39 @@ package binanceapi
 import (
 	"encoding/json"
 	"fmt"
-	calls "go_TradingApp/main/binanceapi/marketDataEndpoints"
+	"go_TradingApp/main/binanceapi/constants"
+	"go_TradingApp/main/binanceapi/enums"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"os"
-	_ "os"
+	"strings"
 )
 
-type SuperAPICall struct{}
+type superAPICall struct{}
+type privateSuperAPICall struct{}
 
-func (SuperAPICall) GetServerTime() calls.ServerTime {
-	var servertime calls.ServerTime
+func finalRequest[E any](reqtype enums.RequestType, url *url.URL) (ret E) {
 
-	response, err := http.Get("https://binance.com/api/v3/time")
+	client := &http.Client{}
+
+	req, err := http.NewRequest(strings.ToUpper(string(reqtype)), url.String(), nil)
+
+	//check if call is a valid format
+	if err != nil {
+		fmt.Print(err.Error())
+		os.Exit(1)
+	}
+
+	res, err := client.Do(req)
 
 	//check if call was successfully executed
 	if err != nil {
 		fmt.Print(err.Error())
 		os.Exit(1)
 	}
-	responseBody, err := ioutil.ReadAll(response.Body)
+
+	responseBody, err := ioutil.ReadAll(res.Body)
 
 	//check if data from call was successfully read
 	if err != nil {
@@ -30,7 +43,7 @@ func (SuperAPICall) GetServerTime() calls.ServerTime {
 		os.Exit(1)
 	}
 
-	err = json.Unmarshal(responseBody, &servertime)
+	err = json.Unmarshal(responseBody, &ret)
 
 	//check if conversion from json to object was successfully executed
 	if err != nil {
@@ -38,5 +51,15 @@ func (SuperAPICall) GetServerTime() calls.ServerTime {
 		os.Exit(1)
 	}
 
-	return servertime
+	return
+
+}
+
+func makeGETRequest[E any](url *url.URL) (ret E) { //accepts any <E> type and also returns that type
+
+	url.Scheme = constants.HTTPS
+	url.Host = constants.BINANCE_TEST_NET
+
+	return finalRequest[E](enums.GET, url)
+
 }
